@@ -15,11 +15,11 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Ayuda } from "@/components/ayuda"
 import { CampoPin } from "@/components/campo-pin"
 import { CONFIG } from "@/config"
 import { enviarComando, ErrorApi } from "@/lib/api"
@@ -78,18 +78,17 @@ export function PanelComandos({
     setEnviando(accion)
     try {
       await enviarComando(pin, accion)
-      toast.success(hecho, {
-        description: desconectado
-          ? "El nodo está desconectado: la orden se perderá."
-          : "El estado se actualiza en unos segundos.",
-      })
+      toast.success(
+        hecho,
+        desconectado
+          ? { description: "El nodo está desconectado: la orden se perderá." }
+          : undefined
+      )
       onEnviado()
     } catch (e) {
       if (e instanceof ErrorApi && e.status === 401) {
         setPin("")
-        toast.error("PIN incorrecto", {
-          description: "Quedó registrado como evento pin_incorrecto.",
-        })
+        toast.error("PIN incorrecto")
       } else {
         toast.error(
           e instanceof Error ? e.message : "No se pudo enviar la orden"
@@ -102,12 +101,14 @@ export function PanelComandos({
 
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="flex items-center justify-between gap-2">
         <CardTitle>Comandos</CardTitle>
-        <CardDescription className="text-xs">
+        <Ayuda titulo="Comandos">
           Las mismas órdenes que la app, con el mismo PIN. El PIN solo queda en
-          memoria mientras la página esté abierta.
-        </CardDescription>
+          memoria mientras la página esté abierta. Silenciar apaga el buzzer de
+          una intrusión y el del humo, pero no el de puerta abierta, que se
+          detiene al cerrarla.
+        </Ayuda>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col items-center gap-2">
@@ -128,8 +129,7 @@ export function PanelComandos({
           <Alert>
             <TriangleAlert />
             <AlertDescription className="text-xs">
-              El nodo está desconectado. La API acepta la orden, pero el ESP32
-              no la recibirá.
+              Nodo desconectado: la orden no llegará.
             </AlertDescription>
           </Alert>
         )}
@@ -152,10 +152,6 @@ export function PanelComandos({
             </Button>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Silenciar apaga el buzzer de una intrusión y el del humo, pero no el
-          de puerta abierta, que se detiene al cerrarla.
-        </p>
       </CardContent>
     </Card>
   )

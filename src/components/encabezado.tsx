@@ -1,4 +1,4 @@
-import { DoorClosed, Moon, RefreshCw, Snowflake, Sun } from "lucide-react"
+import { DoorClosed, Moon, RefreshCw, Sun } from "lucide-react"
 import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
@@ -9,12 +9,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Punto } from "@/components/estado-indicador"
-import { Cenefa, Estrella, GorroNavidad, Luces } from "@/components/navidad"
 import { useTheme } from "@/components/theme-provider"
 import { VENTANAS, type Ventana } from "@/hooks/use-datos"
 import { haceCuanto, hora } from "@/lib/formato"
 import type { Estado } from "@/lib/tipos"
 
+/**
+ * Barra de arriba: la marca con el estado del nodo como subtítulo, la ventana de tiempo y
+ * dos botones. En el celular la ventana baja a una segunda fila a lo ancho, con botones
+ * más grandes, y la barra no se queda fija para no gastar un cuarto de la pantalla.
+ */
 export function Encabezado({
   estado,
   ventana,
@@ -23,8 +27,6 @@ export function Encabezado({
   actualizado,
   ahora,
   onActualizar,
-  nieve,
-  setNieve,
 }: {
   estado: Estado | null
   ventana: Ventana
@@ -33,8 +35,6 @@ export function Encabezado({
   actualizado: number | null
   ahora: number
   onActualizar: () => void
-  nieve: boolean
-  setNieve: (v: boolean) => void
 }) {
   const { theme, setTheme } = useTheme()
   const oscuro =
@@ -44,66 +44,39 @@ export function Encabezado({
   const conectado = estado?.dispositivo === "conectado"
 
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <Luces />
-      <Cenefa />
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-3 px-4 pt-6 pb-3 sm:px-6">
-        <div className="flex min-w-0 flex-[1_1_15rem] items-center gap-3">
-          <div className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <DoorClosed className="size-5" />
-            <GorroNavidad className="absolute -top-3 -left-2 size-6 -rotate-12 drop-shadow-sm" />
-          </div>
+    <header className="border-b bg-background/80 backdrop-blur-md sm:sticky sm:top-0 sm:z-20">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
+        <div className="order-1 flex min-w-0 items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <DoorClosed className="size-[18px]" aria-hidden />
+          </span>
           <div className="min-w-0">
-            <div className="flex min-w-0 items-baseline gap-2">
-              <h1 className="truncate text-base leading-tight font-semibold">
-                Puerta inteligente
-              </h1>
-              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-festivo-rojo">
-                <Estrella className="size-3" />
-                Feliz Navidad
-              </span>
-            </div>
-            <p className="truncate text-xs text-muted-foreground">
-              Nodo esp32_puerta · AWS IoT Core
+            <h1 className="truncate text-[15px] leading-5 font-semibold tracking-tight">
+              Puerta inteligente
+            </h1>
+            <p
+              className="flex items-center gap-1.5 text-xs leading-4 text-muted-foreground"
+              aria-live="polite"
+            >
+              <Punto
+                tono={estado === null ? "neutro" : conectado ? "ok" : "critico"}
+              />
+              {estado === null
+                ? "Consultando…"
+                : conectado
+                  ? "En línea"
+                  : "Sin conexión"}
             </p>
           </div>
-          <span
-            className="ml-1 hidden items-center gap-2 rounded-full border px-2.5 py-1 text-xs sm:inline-flex"
-            aria-live="polite"
-          >
-            <Punto
-              tono={estado === null ? "neutro" : conectado ? "ok" : "critico"}
-              latido={conectado}
-            />
-            {estado === null
-              ? "Consultando…"
-              : conectado
-                ? "En línea"
-                : "Sin conexión"}
-          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            value={ventana}
-            onValueChange={(v) => v && setVentana(v as Ventana)}
-            aria-label="Ventana de tiempo de las métricas"
-          >
-            {(Object.keys(VENTANAS) as Ventana[]).map((v) => (
-              <ToggleGroupItem key={v} value={v} title={VENTANAS[v].etiqueta}>
-                {v.replace("h", " h")}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-
+        <div className="order-2 ml-auto flex items-center gap-1 sm:order-3 sm:ml-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon-sm"
+                className="size-9 sm:size-7"
                 onClick={onActualizar}
                 aria-label="Actualizar ahora"
               >
@@ -120,24 +93,34 @@ export function Encabezado({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="motion-reduce:hidden"
-            onClick={() => setNieve(!nieve)}
-            aria-pressed={nieve}
-            aria-label={nieve ? "Quitar la nieve" : "Poner nieve"}
-            title={nieve ? "Quitar la nieve" : "Poner nieve"}
-          >
-            <Snowflake className={cn(!nieve && "opacity-50")} />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon-sm"
+            className="size-9 sm:size-7"
             onClick={() => setTheme(oscuro ? "light" : "dark")}
             aria-label={oscuro ? "Usar tema claro" : "Usar tema oscuro"}
           >
             {oscuro ? <Sun /> : <Moon />}
           </Button>
         </div>
+
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          value={ventana}
+          onValueChange={(v) => v && setVentana(v as Ventana)}
+          aria-label="Ventana de tiempo de las métricas"
+          className="order-3 w-full sm:order-2 sm:ml-auto sm:w-auto"
+        >
+          {(Object.keys(VENTANAS) as Ventana[]).map((v) => (
+            <ToggleGroupItem
+              key={v}
+              value={v}
+              aria-label={VENTANAS[v].etiqueta}
+              className="h-9 flex-1 tabular-nums sm:h-7 sm:flex-none"
+            >
+              {v.replace("h", " h")}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
       </div>
     </header>
   )

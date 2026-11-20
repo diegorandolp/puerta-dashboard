@@ -12,49 +12,48 @@ import {
 } from "lucide-react"
 import { cn } from "cn"
 
-import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Indicador, colorTono, type Tono } from "@/components/estado-indicador"
+import { SUPERFICIE } from "@/components/superficie"
 import { CONFIG } from "@/config"
-import { haceCuanto, hora } from "@/lib/formato"
+import { haceCuanto } from "@/lib/formato"
 import { calidadRssi } from "@/lib/metricas"
 import type { Estado } from "@/lib/tipos"
 
-interface Tile {
+interface Celda {
   titulo: string
   icono: LucideIcon
   valor: string
   tono: Tono
-  detalle: React.ReactNode
+  detalle?: React.ReactNode
   extra?: React.ReactNode
 }
 
-function Tarjeta({ t, apagado }: { t: Tile; apagado: boolean }) {
+const REJILLA = cn(SUPERFICIE, "grid-cols-2 md:grid-cols-3 xl:grid-cols-6")
+
+function Casilla({ t, apagado }: { t: Celda; apagado: boolean }) {
   return (
-    <Card size="sm" className="gap-2">
-      <CardContent className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <t.icono
-            className={cn(
-              "size-4",
-              apagado ? "text-muted-foreground" : colorTono[t.tono]
-            )}
-            aria-hidden
-          />
-          <span className="text-xs font-medium">{t.titulo}</span>
-        </div>
-        <div
-          className={cn(
-            "text-xl font-semibold tracking-tight",
-            apagado && "text-muted-foreground"
-          )}
-        >
-          {t.valor}
-        </div>
-        {t.extra}
+    <div className="flex flex-col gap-1.5 bg-card p-4">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <t.icono
+          className={cn("size-4", !apagado && colorTono[t.tono])}
+          aria-hidden
+        />
+        {t.titulo}
+      </div>
+      <div
+        className={cn(
+          "text-xl font-semibold tracking-tight tabular-nums",
+          apagado && "text-muted-foreground"
+        )}
+      >
+        {t.valor}
+      </div>
+      {t.extra}
+      {t.detalle && (
         <div className="text-xs text-muted-foreground">{t.detalle}</div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   )
 }
 
@@ -68,8 +67,9 @@ function Gas({ valor }: { valor: number }) {
         : "bg-chart-1"
   return (
     <div className="relative h-1.5 w-full rounded-full bg-muted" aria-hidden>
+      {/* Sin transición: el dato llega cada 10 s y animar el ancho no dice nada */}
       <div
-        className={cn("h-full rounded-full transition-[width]", tono)}
+        className={cn("h-full rounded-full", tono)}
         style={{ width: pct(Math.min(valor, CONFIG.GAS_MAX)) }}
       />
       {/* marca del umbral de alarma */}
@@ -81,6 +81,8 @@ function Gas({ valor }: { valor: number }) {
   )
 }
 
+const CALIDAD = { buena: "Buena", aceptable: "Aceptable", debil: "Débil" }
+
 export function EstadoActual({
   estado,
   ahora,
@@ -90,9 +92,12 @@ export function EstadoActual({
 }) {
   if (!estado) {
     return (
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className={REJILLA}>
         {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="h-[118px] rounded-xl" />
+          <div key={i} className="flex flex-col gap-2.5 bg-card p-4">
+            <Skeleton className="h-3.5 w-16" />
+            <Skeleton className="h-6 w-24" />
+          </div>
         ))}
       </div>
     )
@@ -106,20 +111,20 @@ export function EstadoActual({
   const gas = typeof estado.gas === "number" ? estado.gas : null
   const rssi = typeof estado.rssi === "number" ? estado.rssi : null
   const calidad = rssi === null ? null : calidadRssi(rssi)
+  const sinEnviar =
+    typeof estado.no_enviados === "number" && estado.no_enviados > 0
+      ? estado.no_enviados
+      : null
 
-  const tiles: Tile[] = [
+  const celdas: Celda[] = [
     {
       titulo: "Conexión",
       icono: Radio,
       valor: conectado ? "En línea" : "Sin conexión",
       tono: conectado ? "ok" : "critico",
-      detalle: ultima ? (
-        <>
-          Último latido {hora(ultima)} · {haceCuanto(ultima, ahora)}
-        </>
-      ) : (
-        "Todavía no llegó ningún latido"
-      ),
+      detalle: ultima
+        ? `${conectado ? "Latido" : "Último latido"} ${haceCuanto(ultima, ahora)}`
+        : "Sin latidos",
     },
     {
       titulo: "Puerta",
@@ -136,7 +141,6 @@ export function EstadoActual({
           : estado.puerta === "cerrada"
             ? "ok"
             : "neutro",
-      detalle: "Sensor magnético MC-38",
     },
     {
       titulo: "Cerradura",
@@ -153,10 +157,6 @@ export function EstadoActual({
           : estado.cerradura === "desbloqueada"
             ? "aviso"
             : "neutro",
-      detalle:
-        estado.cerradura === "desbloqueada"
-          ? "Servo a 0°, LED verde"
-          : "Servo a 90°, LED rojo",
     },
     {
       titulo: "Sistema",
@@ -169,12 +169,10 @@ export function EstadoActual({
       tono: estado.alarma ? "critico" : estado.armado ? "ok" : "neutro",
       detalle: estado.alarma ? (
         <Indicador tono="critico">Buzzer sonando</Indicador>
-      ) : (
-        "Buzzer apagado"
-      ),
+      ) : undefined,
     },
     {
-      titulo: "Humo (MQ-2)",
+      titulo: "Humo",
       icono: Flame,
       valor: gas === null ? "—" : `${gas}`,
       tono:
@@ -186,7 +184,7 @@ export function EstadoActual({
               ? "aviso"
               : "ok",
       extra: gas === null ? null : <Gas valor={gas} />,
-      detalle: `Alarma desde ${CONFIG.GAS_ALARMA} de ${CONFIG.GAS_MAX}`,
+      detalle: gas === null ? undefined : `Umbral ${CONFIG.GAS_ALARMA}`,
     },
     {
       titulo: "Señal Wi-Fi",
@@ -201,19 +199,20 @@ export function EstadoActual({
               ? "critico"
               : "neutro",
       detalle:
-        typeof estado.no_enviados === "number"
-          ? `${calidad ? `Señal ${calidad === "debil" ? "débil" : calidad} · ` : ""}${estado.no_enviados} sin enviar`
-          : calidad
-            ? `Señal ${calidad === "debil" ? "débil" : calidad}`
-            : "Sin lectura",
+        [
+          calidad && CALIDAD[calidad],
+          sinEnviar && `${sinEnviar} sin enviar`,
+        ]
+          .filter(Boolean)
+          .join(" · ") || undefined,
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-      {tiles.map((t, i) => (
+    <div className={REJILLA}>
+      {celdas.map((t, i) => (
         // Sin conexión, todo menos la conexión es el último dato conocido
-        <Tarjeta
+        <Casilla
           key={t.titulo}
           t={t}
           apagado={(!conectado || sinDatos) && i > 0}

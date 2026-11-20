@@ -47,13 +47,7 @@ export function Indicador({
 }
 
 /** Punto de estado (con anillo que late si está en vivo). */
-export function Punto({
-  tono,
-  latido = false,
-}: {
-  tono: Tono
-  latido?: boolean
-}) {
+export function Punto({ tono }: { tono: Tono }) {
   const bg = {
     ok: "bg-ok",
     aviso: "bg-aviso",
@@ -61,17 +55,10 @@ export function Punto({
     neutro: "bg-muted-foreground",
   }[tono]
   return (
-    <span className="relative flex size-2 shrink-0" aria-hidden>
-      {latido && (
-        <span
-          className={cn(
-            "absolute inline-flex size-full animate-ping rounded-full opacity-60",
-            bg
-          )}
-        />
-      )}
-      <span className={cn("relative inline-flex size-2 rounded-full", bg)} />
-    </span>
+    <span
+      className={cn("inline-flex size-2 shrink-0 rounded-full", bg)}
+      aria-hidden
+    />
   )
 }
 

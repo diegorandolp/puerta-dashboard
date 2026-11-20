@@ -7,9 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -31,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Ayuda } from "@/components/ayuda"
 import { CampoPin } from "@/components/campo-pin"
 import { CONFIG } from "@/config"
 import { ErrorApi, marcarFalsaAlarma, SIN_RESPUESTA } from "@/lib/api"
@@ -108,8 +107,7 @@ export function TablaEventos({
       ) {
         // Una ruta inexistente llega como error de red (API Gateway responde 404 sin CORS)
         toast.error("Sin respuesta de POST /falsa_alarma", {
-          description:
-            "Si la ruta todavía no está desplegada en AWS, el navegador lo ve así. Ver aws/README.md.",
+          description: "Puede que la ruta todavía no esté desplegada en AWS.",
         })
       } else {
         toast.error(
@@ -123,32 +121,32 @@ export function TablaEventos({
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="col-start-1">Historial de eventos</CardTitle>
-        <CardDescription className="col-start-1 text-xs">
-          Del más reciente al más antiguo. Las alertas del ESP32 se pueden
-          marcar como falsas para la métrica 5.
-        </CardDescription>
-        {/* En el celular el filtro baja debajo de la descripción */}
-        <CardAction className="col-start-1 row-span-1 row-start-3 justify-self-start pt-2 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:justify-self-end sm:pt-0">
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            value={filtro}
-            onValueChange={(v) => {
-              if (v) {
-                setFiltro(v as Filtro)
-                setMostrar(PAGINA)
-              }
-            }}
-            aria-label="Filtrar eventos"
-          >
-            <ToggleGroupItem value="todos">Todos</ToggleGroupItem>
-            <ToggleGroupItem value="alertas">Alertas</ToggleGroupItem>
-            <ToggleGroupItem value="criticos">Críticos</ToggleGroupItem>
-          </ToggleGroup>
-        </CardAction>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex items-center gap-2">
+          <CardTitle>Historial de eventos</CardTitle>
+          <Ayuda titulo="Historial de eventos">
+            Del más reciente al más antiguo. Las alertas del ESP32 se pueden
+            marcar como falsas, y entonces cuentan en la tasa de falsas
+            alarmas.
+          </Ayuda>
+        </div>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          value={filtro}
+          onValueChange={(v) => {
+            if (v) {
+              setFiltro(v as Filtro)
+              setMostrar(PAGINA)
+            }
+          }}
+          aria-label="Filtrar eventos"
+        >
+          <ToggleGroupItem value="todos">Todos</ToggleGroupItem>
+          <ToggleGroupItem value="alertas">Alertas</ToggleGroupItem>
+          <ToggleGroupItem value="criticos">Críticos</ToggleGroupItem>
+        </ToggleGroup>
       </CardHeader>
       <CardContent>
         <Table className="text-xs">

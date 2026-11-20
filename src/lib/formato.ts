@@ -38,6 +38,11 @@ export const entero = (n: number) =>
 export const decimal = (n: number) =>
   Number.isFinite(n) ? fDecimal.format(n) : "—"
 
+const reglaPlural = new Intl.PluralRules("es")
+/** plural(1, "alerta", "alertas") → "1 alerta"; plural(0, …) → "0 alertas" */
+export const plural = (n: number, uno: string, otros: string) =>
+  `${entero(n)} ${reglaPlural.select(n) === "one" ? uno : otros}`
+
 /** 0.0123 → "1,2 %"; 1 → "100 %" */
 export function porcentaje(fraccion: number) {
   if (!Number.isFinite(fraccion)) return "—"

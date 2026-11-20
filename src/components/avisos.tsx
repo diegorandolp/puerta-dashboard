@@ -3,7 +3,7 @@ import { CloudOff, Flame, Info, Siren, WifiOff } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CONFIG } from "@/config"
 import type { DatosVentana } from "@/hooks/use-datos"
-import { fechaHora, haceCuanto } from "@/lib/formato"
+import { haceCuanto } from "@/lib/formato"
 import type { Estado } from "@/lib/tipos"
 
 /** Avisos arriba de todo: alarma, humo, nodo caído, errores de la API y rutas que faltan en AWS. */
@@ -30,23 +30,17 @@ export function Avisos({
     estado.gas >= CONFIG.GAS_ALARMA
 
   const faltas: string[] = []
-  if (datos?.faltaLatidos === "ruta")
-    faltas.push("la ruta GET /latidos (Lambda consultarPuerta)")
+  if (datos?.faltaLatidos === "ruta") faltas.push("la ruta GET /latidos")
   if (datos?.faltaLatidos === "tabla")
-    faltas.push("la variable TABLA_LATIDOS en consultarPuerta")
+    faltas.push("TABLA_LATIDOS en consultarPuerta")
   if (datos && !datos.eventosConDesde)
-    faltas.push(
-      "el parámetro ?desde= de GET /eventos (se usan solo los últimos 100 eventos)"
-    )
+    faltas.push("?desde= en GET /eventos (solo se ven los últimos 100)")
 
   const avisos = [
     conectado && estado?.alarma && (
       <Alert key="alarma" variant="destructive" className="border-critico/40">
         <Siren />
         <AlertTitle>La alarma está sonando</AlertTitle>
-        <AlertDescription>
-          El buzzer del nodo está activo. Se puede silenciar desde Comandos.
-        </AlertDescription>
       </Alert>
     ),
     humo && (
@@ -54,19 +48,19 @@ export function Avisos({
         <Flame />
         <AlertTitle>Humo detectado</AlertTitle>
         <AlertDescription>
-          El MQ-2 marca {estado?.gas}, sobre el umbral de {CONFIG.GAS_ALARMA}.
-          La puerta queda destrabada para poder salir.
+          MQ-2 en {estado?.gas} (umbral {CONFIG.GAS_ALARMA}). La puerta queda
+          destrabada.
         </AlertDescription>
       </Alert>
     ),
     estado && !conectado && (
       <Alert key="caido">
         <WifiOff />
-        <AlertTitle>El nodo no está enviando latidos</AlertTitle>
+        <AlertTitle>El nodo no envía latidos</AlertTitle>
         <AlertDescription>
           {ultima
-            ? `El último llegó el ${fechaHora(ultima)} (${haceCuanto(ultima, ahora)}). El estado de abajo es el último conocido.`
-            : "Todavía no llegó ningún latido."}
+            ? `Último latido ${haceCuanto(ultima, ahora)}. Se muestra el último estado conocido.`
+            : "Todavía no llegó ninguno."}
         </AlertDescription>
       </Alert>
     ),
@@ -82,22 +76,19 @@ export function Avisos({
     faltas.length > 0 && (
       <Alert key="faltas">
         <Info />
-        <AlertTitle>Falta desplegar parte del backend en AWS</AlertTitle>
+        <AlertTitle>Backend incompleto en AWS</AlertTitle>
         <AlertDescription>
           Falta {faltas.join(" y ")}. Las métricas que dependen de eso quedan
-          incompletas. Los pasos están en aws/README.md.
+          incompletas.
         </AlertDescription>
       </Alert>
     ),
     datos && (datos.eventosTruncado || datos.latidosTruncado) && (
       <Alert key="tope">
         <Info />
-        <AlertTitle>
-          La ventana tiene más datos de los que trae la API
-        </AlertTitle>
+        <AlertTitle>Ventana incompleta</AlertTitle>
         <AlertDescription>
-          Se dejaron fuera los más antiguos. Elijan una ventana más corta para
-          medir todo el periodo.
+          La API no trae todo el periodo. Elige una ventana más corta.
         </AlertDescription>
       </Alert>
     ),

@@ -14,14 +14,11 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import {
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   type ChartConfig,
 } from "@/components/ui/chart"
@@ -33,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Ayuda } from "@/components/ayuda"
 import { CONFIG } from "@/config"
 import {
   decimal,
@@ -128,9 +126,10 @@ function Grafico({
 }) {
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="flex items-center justify-between gap-2">
         <CardTitle>{titulo}</CardTitle>
-        <CardDescription className="text-xs">{descripcion}</CardDescription>
+        {/* Cómo leer el gráfico va en la ayuda para no llenar la página de texto */}
+        <Ayuda titulo={titulo}>{descripcion}</Ayuda>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
@@ -349,7 +348,6 @@ export function GraficoEventos({ m }: { m: Metricas }) {
                 cursor={{ fill: "var(--muted)", opacity: 0.5 }}
                 content={<TooltipSensores intervaloMs={e.intervaloMs} />}
               />
-              <ChartLegend content={<ChartLegendContent />} itemSorter={null} />
               {activos.map((s) => (
                 <Bar
                   key={s}
@@ -365,6 +363,7 @@ export function GraficoEventos({ m }: { m: Metricas }) {
             </BarChart>
           </ChartContainer>
         )}
+        {/* La tabla hace de leyenda: cada fila lleva el color de su serie */}
         <Table className="text-xs">
           <TableHeader>
             <TableRow>
@@ -372,7 +371,9 @@ export function GraficoEventos({ m }: { m: Metricas }) {
               <TableHead className="text-right">Leves</TableHead>
               <TableHead className="text-right">Críticos</TableHead>
               <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-right">Por hora</TableHead>
+              <TableHead className="hidden text-right sm:table-cell">
+                Por hora
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="tabular-nums">
@@ -400,7 +401,7 @@ export function GraficoEventos({ m }: { m: Metricas }) {
                 <TableCell className="text-right font-medium">
                   {entero(e.porSensor[s].total)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="hidden text-right sm:table-cell">
                   {decimal(e.porSensor[s].porHora)}
                 </TableCell>
               </TableRow>

@@ -18,8 +18,6 @@
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
     --color-chart-5: var(--chart-5);
-    --color-festivo-rojo: var(--festivo-rojo);
-    --color-festivo-oro: var(--festivo-oro);
     --color-ok: var(--ok);
     --color-aviso: var(--aviso);
     --color-critico: var(--critico);
@@ -56,7 +54,7 @@
 }
 
 :root {
-    /* Tema navideño. Neutros con un matiz verde pino muy leve; todos los pares de texto cumplen WCAG AA (>= 4.5:1). */
+    /* Paleta verde pino: neutros con un matiz verde muy leve, y dorado solo para el foco. Todos los pares de texto cumplen WCAG AA (>= 4.5:1). */
     --background: oklch(0.975 0.006 150); /* nieve */
     --foreground: oklch(0.21 0.04 160); /* verde pino casi negro */
     --card: oklch(0.995 0.002 150);
@@ -87,13 +85,6 @@
     --ok: oklch(0.5 0.13 150);
     --aviso: oklch(0.6 0.115 78);
     --critico: oklch(0.5 0.19 25);
-    /* Adornos */
-    --festivo-rojo: oklch(0.5 0.19 22); /* texto sobre --background: 6.2:1 */
-    --festivo-oro: oklch(0.52 0.1 85); /* texto sobre --background: 5.2:1 */
-    --nieve: oklch(0.7 0.08 235 / 0.6); /* copos: azul hielo, para que se vean sobre fondo claro */
-    --cable: oklch(0.5 0.05 155);
-    --velo-rojo: oklch(0.7 0.18 25 / 0.1);
-    --velo-verde: oklch(0.65 0.13 155 / 0.12);
     --radius: 0.625rem;
     --sidebar: oklch(0.975 0.006 150);
     --sidebar-foreground: oklch(0.21 0.04 160);
@@ -132,12 +123,6 @@
     --ok: oklch(0.76 0.16 150);
     --aviso: oklch(0.84 0.14 88);
     --critico: oklch(0.7 0.18 25);
-    --festivo-rojo: oklch(0.72 0.17 22);
-    --festivo-oro: oklch(0.86 0.14 90);
-    --nieve: oklch(0.98 0.01 100 / 0.75);
-    --cable: oklch(0.55 0.05 155);
-    --velo-rojo: oklch(0.6 0.2 25 / 0.14);
-    --velo-verde: oklch(0.6 0.14 155 / 0.18);
     --sidebar: oklch(0.235 0.04 165);
     --sidebar-foreground: oklch(0.97 0.008 100);
     --sidebar-primary: oklch(0.74 0.16 152);
@@ -148,124 +133,39 @@
     --sidebar-ring: oklch(0.82 0.14 88);
 }
 
+/* Curva de salida fuerte para todas las transiciones (la de Tailwind es más floja). Ver mobile-native y emil-design-eng. */
+@theme {
+    --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Controles nativos y barras de desplazamiento siguen el tema de la página y no el del sistema */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
     }
   body {
     @apply bg-background text-foreground;
-    /* Un velo de luz roja y verde en las esquinas de arriba */
-    background-image:
-      radial-gradient(60rem 24rem at 0% -6%, var(--velo-rojo), transparent 70%),
-      radial-gradient(60rem 24rem at 100% -6%, var(--velo-verde), transparent 70%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
     }
   html {
     @apply font-sans;
+    /* Sin el destello gris al tocar y sin que Safari agrande el texto en horizontal */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
     }
-}
-
-/* ------------------------------------------------------------------ Adornos navideños
-   Todo es decorativo (aria-hidden, pointer-events: none) y se apaga con prefers-reduced-motion. */
-
-/* Nieve: cada copo es un contenedor que cae (--d, --r) y un hijo que se mece (--v, --m). */
-.copo {
-    position: absolute;
-    top: 0;
-    left: var(--x);
-    animation: nevar-cae var(--d) linear var(--r) infinite;
-    will-change: transform;
-}
-.copo > i {
-    display: block;
-    width: var(--s);
-    height: var(--s);
-    border-radius: 9999px;
-    background: var(--nieve);
-    opacity: var(--o);
-    filter: blur(var(--b));
-    animation: nevar-mece var(--m) ease-in-out var(--r) infinite alternate;
-}
-/* Los copos grandes dibujan un cristal de seis brazos con una máscara */
-.copo-cristal > i {
-    border-radius: 0;
-    filter: none;
-    -webkit-mask: var(--cristal) center / contain no-repeat;
-    mask: var(--cristal) center / contain no-repeat;
-}
-:root {
-    --cristal: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 3.8l3 2.4 3-2.4M9 20.2l3-2.4 3 2.4M2.6 10.2l3.7.6-.7 3.7M21.4 10.2l-3.7.6.7 3.7'/%3E%3C/svg%3E");
-}
-@keyframes nevar-cae {
-    from { transform: translate3d(0, -6vh, 0); }
-    to { transform: translate3d(0, 106vh, 0); }
-}
-@keyframes nevar-mece {
-    from { transform: translate3d(calc(var(--v) * -1), 0, 0); }
-    to { transform: translate3d(var(--v), 0, 0); }
-}
-@media (max-width: 40rem) {
-    /* En pantallas chicas, la mitad de los copos */
-    .copo:nth-child(n + 19) { display: none; }
-}
-
-/* Guirnalda de luces: el cable es una máscara y cada color es una capa que titila. Se repite cada 96 px. */
-.luces {
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 22px;
-    overflow: hidden;
-    pointer-events: none;
-}
-.luces::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--cable);
-    -webkit-mask: var(--hilo) repeat-x 0 0 / 96px 22px;
-    mask: var(--hilo) repeat-x 0 0 / 96px 22px;
-}
-:root {
-    --hilo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 22' fill='none' stroke='black' stroke-linecap='round'%3E%3Cpath d='M0 2Q48 14 96 2' stroke-width='1.2'/%3E%3Cpath d='M12 4.6v3.2M36 7.6v3.2M60 7.6v3.2M84 4.6v3.2' stroke-width='2'/%3E%3C/svg%3E");
-}
-.luces > i {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(
-        circle at var(--cx) var(--cy),
-        var(--c) 0 3.2px,
-        color-mix(in oklab, var(--c) 40%, transparent) 3.7px,
-        transparent 9px
-    );
-    background-repeat: repeat-x;
-    background-size: 96px 22px;
-    animation: titilar 2.6s ease-in-out var(--t) infinite;
-}
-.luces > i:nth-of-type(1) { --c: oklch(0.64 0.22 22); --cx: 12px; --cy: 11px; --t: 0s; }
-.luces > i:nth-of-type(2) { --c: oklch(0.85 0.16 88); --cx: 36px; --cy: 14px; --t: -0.65s; }
-.luces > i:nth-of-type(3) { --c: oklch(0.72 0.18 150); --cx: 60px; --cy: 14px; --t: -1.3s; }
-.luces > i:nth-of-type(4) { --c: oklch(0.72 0.14 240); --cx: 84px; --cy: 11px; --t: -1.95s; }
-@keyframes titilar {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-
-/* Bastón de caramelo en el borde de abajo del encabezado */
-.cenefa {
-    position: absolute;
-    inset: auto 0 -1px 0;
-    height: 3px;
-    pointer-events: none;
-    opacity: 0.9;
-    background: repeating-linear-gradient(
-        135deg,
-        var(--festivo-rojo) 0 6px,
-        var(--card) 6px 12px
-    );
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .nieve { display: none; }
-    .luces > i { animation: none; }
+  /* iOS acerca la página si el campo tiene menos de 16 px; el arreglo es el tamaño, no desactivar el zoom */
+  input, textarea, select {
+    font-size: 16px;
+    }
+  /* Sin la espera del doble toque, y sin seleccionar la etiqueta de un botón al mantenerlo pulsado */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    }
+  button, [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    }
 }

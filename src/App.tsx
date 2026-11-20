@@ -12,18 +12,15 @@ import {
   GraficoLatencia,
   GraficoRssi,
 } from "@/components/graficos"
-import { Nieve, Pino } from "@/components/navidad"
 import { PanelComandos } from "@/components/panel-comandos"
 import { TablaEventos } from "@/components/tabla-eventos"
 import { TarjetasMetricas } from "@/components/tarjetas-metricas"
 import {
   useAhora,
   useDatos,
-  VENTANAS,
   type DatosVentana,
   type Ventana,
 } from "@/hooks/use-datos"
-import { useNieve } from "@/hooks/use-nieve"
 import { horaCorta } from "@/lib/formato"
 import { calcularMetricas } from "@/lib/metricas"
 
@@ -57,8 +54,12 @@ function Seccion({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="text-sm font-semibold tracking-tight">{titulo}</h2>
-        {detalle && <p className="text-xs text-muted-foreground">{detalle}</p>}
+        <h2 className="text-sm font-medium tracking-tight">{titulo}</h2>
+        {detalle && (
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {detalle}
+          </p>
+        )}
       </div>
       {children}
     </section>
@@ -69,7 +70,6 @@ export function App() {
   const [ventana, setVentana] = useState<Ventana>("1h")
   const [pin, setPin] = useState("")
   const ahora = useAhora()
-  const [nieve, setNieve] = useNieve()
   const {
     estado,
     errorEstado,
@@ -95,13 +95,12 @@ export function App() {
   )
 
   const rango = datos
-    ? `${VENTANAS[ventana].etiqueta}: ${horaCorta(datos.desdeMs)} a ${horaCorta(datos.hastaMs)}, hora de Lima`
+    ? `${horaCorta(datos.desdeMs)} a ${horaCorta(datos.hastaMs)} (Lima)`
     : null
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="relative isolate min-h-svh">
-        <Nieve activa={nieve} />
+      <div className="min-h-svh">
         <Encabezado
           estado={estado}
           ventana={ventana}
@@ -110,11 +109,9 @@ export function App() {
           actualizado={actualizado}
           ahora={ahora}
           onActualizar={actualizar}
-          nieve={nieve}
-          setNieve={setNieve}
         />
 
-        <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6">
+        <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pt-6 pb-12 sm:px-6">
           <Avisos
             estado={estado}
             datos={datos}
@@ -123,22 +120,16 @@ export function App() {
             ahora={ahora}
           />
 
-          <Seccion titulo="Estado actual" detalle="GET /estado, cada 10 s">
+          <Seccion titulo="Estado">
             <EstadoActual estado={estado} ahora={ahora} />
           </Seccion>
 
           <Seccion titulo="Métricas de desempeño" detalle={rango}>
-            <TarjetasMetricas
-              metricas={metricas}
-              faltaLatidos={datos?.faltaLatidos ?? null}
-            />
+            <TarjetasMetricas metricas={metricas} />
           </Seccion>
 
           {metricas && (
-            <Seccion
-              titulo="Series de tiempo"
-              detalle="Pasen el cursor sobre un gráfico para ver cada valor"
-            >
+            <Seccion titulo="Series de tiempo">
               <div className="grid gap-3 lg:grid-cols-2">
                 <GraficoLatencia m={metricas} />
                 <GraficoDisponibilidad m={metricas} />
@@ -165,19 +156,6 @@ export function App() {
               onEnviado={() => setTimeout(refrescarEstado, 2500)}
             />
           </div>
-
-          <footer className="pb-4 text-center text-xs text-muted-foreground">
-            <div
-              className="mb-2 flex items-center justify-center gap-2 text-festivo-oro"
-              aria-hidden
-            >
-              <Pino className="h-5" />
-              <span className="font-medium">Felices fiestas</span>
-              <Pino className="h-5" />
-            </div>
-            Proyecto 2 · CS5055 Internet de las Cosas · UTEC. Las métricas se
-            calculan en el navegador con los datos de DynamoDB.
-          </footer>
         </main>
 
         <Toaster position="bottom-right" />

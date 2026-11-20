@@ -111,6 +111,13 @@ export function ThemeProvider({
 
       root.classList.remove("light", "dark")
       root.classList.add(resolvedTheme)
+      // La barra del navegador en el celular toma el color de la página, no el del sistema
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute(
+          "content",
+          resolvedTheme === "dark" ? "#041b12" : "#f4f8f5"
+        )
 
       if (restoreTransitions) {
         restoreTransitions()

@@ -1,6 +1,6 @@
 # Dashboard
 
-Interfaz web del proyecto, hecha con React, Vite y [shadcn/ui](https://ui.shadcn.com) (tema navideño, oscuro por defecto). Cumple el requisito de "Interfaz gráfica" del enunciado: además de mostrar los datos, los procesa en el navegador para obtener las seis métricas de desempeño del informe (Tabla `tab:metricas`).
+Interfaz web del proyecto, hecha con React, Vite y [shadcn/ui](https://ui.shadcn.com) (paleta verde pino, oscuro por defecto, sin adornos). Cumple el requisito de "Interfaz gráfica" del enunciado: además de mostrar los datos, los procesa en el navegador para obtener las seis métricas de desempeño del informe (Tabla `tab:metricas`).
 
 Igual que la app, solo habla con API Gateway. Las rutas de la API están en `aws/README.md` del repositorio principal del proyecto.
 
@@ -24,7 +24,7 @@ Cada push a `main` ejecuta `.github/workflows/pages.yml`, que compila con `npm r
 ## Qué muestra
 
 - **Estado actual** (`GET /estado`, cada 10 s): conexión, puerta, cerradura, sistema armado y buzzer, lectura del MQ-2 contra su umbral y RSSI. Arriba salen avisos si la alarma suena, si hay humo o si el nodo dejó de mandar latidos.
-- **Métricas de desempeño** de la ventana elegida (1 h, 6 h o 24 h), con `GET /eventos?desde=` y `GET /latidos?desde=` cada 30 s. Cada tarjeta explica su cálculo en el ícono ⓘ.
+- **Métricas de desempeño** de la ventana elegida (1 h, 6 h o 24 h), con `GET /eventos?desde=` y `GET /latidos?desde=` cada 30 s. Cada métrica y cada gráfico explican su cálculo en el ícono ⓘ, que se abre con un toque o un clic.
 - **Series de tiempo**: latencia de cada alerta, disponibilidad por intervalo, eventos por sensor (con su tabla), RSSI y gas.
 - **Historial de eventos**, con un botón para marcar o desmarcar una alerta como falsa (`POST /falsa_alarma`, con el PIN).
 - **Comandos**: abrir, armar, desarmar y silenciar (`POST /comando`), con el mismo PIN de la app. El PIN no se guarda: solo queda en memoria mientras la pestaña esté abierta.
@@ -69,7 +69,7 @@ src/
 └── components/
     ├── ui/                  componentes de shadcn/ui (se agregan con npx shadcn add)
     ├── estado-actual.tsx, tarjetas-metricas.tsx, graficos.tsx,
-    └── tabla-eventos.tsx, panel-comandos.tsx, avisos.tsx, encabezado.tsx
+    └── tabla-eventos.tsx, panel-comandos.tsx, avisos.tsx, encabezado.tsx, ayuda.tsx
 ```
 
 - Los colores de los gráficos son una paleta categórica validada para daltonismo en los dos temas (`--chart-1` a `--chart-5` en `src/index.css`), siempre en el mismo orden por sensor. Los estados usan ícono y texto, nunca solo color.

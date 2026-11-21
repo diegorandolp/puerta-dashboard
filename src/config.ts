@@ -7,8 +7,8 @@ export const CONFIG = {
   ESTADO_MS: 10_000, // cada cuánto se pide GET /estado
   VENTANA_MS: 30_000, // cada cuánto se piden eventos y latidos de la ventana
   PIN_LENGTH: 6,
-  GAS_ALARMA: 1800, // UMBRAL_GAS: desde aquí hay humo
-  GAS_NORMAL: 1600, // por debajo vuelve a normal
+  GAS_ALARMA: 1450, // UMBRAL_GAS: desde aquí hay humo
+  GAS_NORMAL: 1250, // por debajo vuelve a normal (alarma menos la histéresis de 200)
   GAS_MAX: 4095, // ADC de 12 bits
   LATIDO_MS: 30_000, // el ESP32 manda un latido cada 30 s
   DESCONEXION_MS: 70_000, // misma regla que consultarPuerta: 70 s sin latidos = desconectado
